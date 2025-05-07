@@ -84,6 +84,10 @@ public class Account {
 		this.notificationPreference = notificationPreference;
 	}
 
+	public static AccountBuilder builder() {
+		return AccountBuilder.createBuilder();
+	}
+
 	public boolean withdraw(double amount) {
 		if(this.balance - amount >= 0) {
 			this.balance -= amount;
