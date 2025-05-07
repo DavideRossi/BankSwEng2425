@@ -16,6 +16,8 @@ public class Account {
 		private Optional<String> email = Optional.empty();
 		private Optional<String> phoneNumber = Optional.empty();
 		private Optional<NotificationType> notificationPreference = Optional.empty();
+		private Optional<Notificator> notificator = Optional.empty();
+		private Optional<RemoteBankOperator> remoteBankOperator = Optional.empty();
 
 		public static AccountBuilder createBuilder() {
 			return new AccountBuilder();
@@ -54,6 +56,16 @@ public class Account {
 			return this;
 		}
 
+		public AccountBuilder setRemoteBankOperator(RemoteBankOperator bankOperator) {
+			this.remoteBankOperator = Optional.of(bankOperator);
+			return this;
+		}
+
+		public AccountBuilder setNotificator(Notificator notificator) {
+			this.notificator = Optional.of(notificator);
+			return this;
+		}
+
 		public Account build() {
 			if(this.owner.isEmpty()) {
 				throw new IllegalStateException("Owner must be set");
@@ -64,7 +76,11 @@ public class Account {
 			int id = this.id.orElse((int)(Math.random() * ID_LIMIT));
 			double balance = this.balance.orElse(.0);
 			NotificationType notificationPreference = this.notificationPreference.orElse(NOTIFICATION_PREFERENCE_DEFAULT);
-			return new Account(owner, email, phoneNumber, id, balance, notificationPreference);
+			Notificator notificator = this.notificator.get();
+			RemoteBankOperator bankOperator = this.remoteBankOperator.get();
+			return new Account(owner, email, phoneNumber, id, 
+				balance, notificationPreference,
+				notificator, bankOperator);
 		}
 	}
 
@@ -74,14 +90,20 @@ public class Account {
 	private String email;
 	private String phoneNumber;
 	private NotificationType notificationPreference;
+	private Notificator notificator;
+	private RemoteBankOperator remoteBankOperator;
 	
-	private Account(String owner, String email, String phoneNumber, int id, double balance, NotificationType notificationPreference) {
+	private Account(String owner, String email, String phoneNumber, 
+			int id, double balance, NotificationType notificationPreference, 
+			Notificator notificator, RemoteBankOperator remoteBankOperator) {
 		this.owner = owner;
 		this.email = email;
 		this.phoneNumber = phoneNumber;
 		this.id = id;
 		this.balance = balance;
 		this.notificationPreference = notificationPreference;
+		this.notificator = notificator;
+		this.remoteBankOperator = remoteBankOperator;
 	}
 
 	public static AccountBuilder builder() {
@@ -128,19 +150,16 @@ public class Account {
 
 	//transfer from a local account to a remote one
 	public boolean makeTransfer(String destinationAccountCode, double amount) {
-		EmailNotificator notificator = new EmailNotificator();
-		SETRemoteBankOperator remoteBankOperator = new SETRemoteBankOperator();
-		
 		if(getBalance() >= amount) {
-			if(remoteBankOperator.transfer(destinationAccountCode, amount)) {
+			if(this.remoteBankOperator.transfer(destinationAccountCode, amount)) {
 				withdraw(amount);
-				notificator.notify(
+				this.notificator.notify(
 					this,
 					String.format("Trasferred %f from %s to %s", 
 							amount, this, destinationAccountCode));
 				return true;
 			} else {
-				notificator.notify(
+				this.notificator.notify(
 					this,
 					String.format("Failed to trasfer %f from %s to %s", 
 					amount, this, destinationAccountCode));
