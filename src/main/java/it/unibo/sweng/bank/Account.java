@@ -56,7 +56,7 @@ public class Account {
 
 		public Account build() {
 			if(this.owner.isEmpty()) {
-				throw new IllegalArgumentException("Owner must be set");
+				throw new IllegalStateException("Owner must be set");
 			}
 			String owner = this.owner.get();
 			String email = this.email.orElse(EMAIL_DEFAULT);
@@ -100,7 +100,7 @@ public class Account {
 	public double getBalance() {
 		return balance;
 	}
-	
+
 	public void setBalance(double balance) {
 		this.balance = balance;
 	}
